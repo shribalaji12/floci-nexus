@@ -13,6 +13,8 @@ A four-agent system that turns a plain-English infrastructure request into a run
          5 AWS resources live on LocalStack
 ```
 
+<img src="docs/images/architecture.svg" alt="System Architecture" width="100%"/>
+
 ---
 
 ## What it does
@@ -194,6 +196,12 @@ Commands inside the shell: `/agent ARIA`, `/clear`, `/exit`.
 
 ---
 
+## Pipeline
+
+<img src="docs/images/pipeline.svg" alt="8-Stage Pipeline Flow" width="100%"/>
+
+---
+
 ## Agent memory
 
 Each agent maintains three memory stores that persist across restarts:
@@ -203,6 +211,8 @@ Each agent maintains three memory stores that persist across restarts:
 | **Episodic** | Specific past experiences ("deployed micro-blog with S3 + Lambda") | ~13%/day |
 | **Semantic** | Domain knowledge ("API Gateway REST resources use `aws_api_gateway_*`") | ~2%/day |
 | **Procedural** | Skills and HCL patterns ("Lambda + IAM pattern: Step 1 create role…") | ~8%/day |
+
+<img src="docs/images/memory-system.svg" alt="Memory System" width="100%"/>
 
 Retrieval uses **cosine similarity via pgvector** — the query is embedded with Ollama `nomic-embed-text` and the nearest memories are returned. If Ollama is unavailable the system falls back to Jaccard keyword matching.
 

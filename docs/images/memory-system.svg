@@ -1,0 +1,167 @@
+<svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#475569"/>
+    </marker>
+    <marker id="arr-b" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arr-p" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#8b5cf6"/>
+    </marker>
+  </defs>
+
+  <rect width="860" height="520" fill="#0a0a14" rx="12"/>
+  <text x="430" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#dde6ff" letter-spacing="2">FLOCI NEXUS — Agent Memory System</text>
+
+  <!-- Left: Three memory type boxes -->
+  <!-- Episodic -->
+  <rect x="30" y="52" width="210" height="132" rx="9" fill="#00d4ff0a" stroke="#00d4ff44" stroke-width="1.5"/>
+  <text x="135" y="74"  text-anchor="middle" font-size="12" font-weight="700" fill="#00d4ff">Episodic Memory</text>
+  <text x="135" y="90"  text-anchor="middle" font-size="8"  fill="#475569">episodic_memories table</text>
+  <text x="52"  y="108" font-size="9" fill="#94a3b8">• Specific past experiences</text>
+  <text x="52"  y="122" font-size="9" fill="#94a3b8">• Per-conversation outcomes</text>
+  <text x="52"  y="136" font-size="9" fill="#94a3b8">• Gap discoveries</text>
+  <rect x="44"  y="148" width="182" height="28" rx="5" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text x="50"  y="162" font-size="8" fill="#475569">decay rate  0.985 / hr  (~13 %/day)</text>
+  <text x="50"  y="173" font-size="8" fill="#475569">boost on access  +0.12</text>
+
+  <!-- Semantic -->
+  <rect x="30" y="198" width="210" height="132" rx="9" fill="#39ff140a" stroke="#39ff1444" stroke-width="1.5"/>
+  <text x="135" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#39ff14">Semantic Memory</text>
+  <text x="135" y="236" text-anchor="middle" font-size="8"  fill="#475569">semantic_memories table</text>
+  <text x="52"  y="254" font-size="9" fill="#94a3b8">• Domain knowledge facts</text>
+  <text x="52"  y="268" font-size="9" fill="#94a3b8">• Validation rules &amp; outcomes</text>
+  <text x="52"  y="282" font-size="9" fill="#94a3b8">• Terraform resource rules</text>
+  <rect x="44"  y="294" width="182" height="28" rx="5" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text x="50"  y="308" font-size="8" fill="#475569">decay rate  0.998 / hr  (~2 %/day)</text>
+  <text x="50"  y="319" font-size="8" fill="#475569">boost on access  +0.05</text>
+
+  <!-- Procedural -->
+  <rect x="30" y="344" width="210" height="132" rx="9" fill="#ff6b350a" stroke="#ff6b3544" stroke-width="1.5"/>
+  <text x="135" y="366" text-anchor="middle" font-size="12" font-weight="700" fill="#ff6b35">Procedural Memory</text>
+  <text x="135" y="382" text-anchor="middle" font-size="8"  fill="#475569">procedural_memories table</text>
+  <text x="52"  y="400" font-size="9" fill="#94a3b8">• HCL Terraform patterns</text>
+  <text x="52"  y="414" font-size="9" fill="#94a3b8">• Step-by-step skills</text>
+  <text x="52"  y="428" font-size="9" fill="#94a3b8">• Proven provider configs</text>
+  <rect x="44"  y="440" width="182" height="28" rx="5" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text x="50"  y="454" font-size="8" fill="#475569">decay rate  0.992 / hr  (~8 %/day)</text>
+  <text x="50"  y="465" font-size="8" fill="#475569">boost on access  +0.18</text>
+
+  <!-- Center: Ebbinghaus decay curves -->
+  <rect x="258" y="52" width="240" height="230" rx="9" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="378" y="72" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Ebbinghaus Forgetting Curve</text>
+  <text x="378" y="86" text-anchor="middle" font-size="8"  fill="#475569">strength × rate ^ hours_since_access</text>
+
+  <!-- Curve axes -->
+  <line x1="278" y1="230" x2="480" y2="230" stroke="#1e293b" stroke-width="1.2"/>
+  <line x1="278" y1="230" x2="278" y2="102" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="380" y="248" text-anchor="middle" font-size="8" fill="#334155">time →</text>
+  <text x="270" y="166" text-anchor="middle" font-size="8" fill="#334155" transform="rotate(-90,270,166)">strength</text>
+  <text x="278" y="234" text-anchor="middle" font-size="7" fill="#334155">0</text>
+  <text x="278" y="106" text-anchor="middle" font-size="7" fill="#334155">1.0</text>
+
+  <!-- Semantic curve (flattest) -->
+  <polyline points="278,104 310,107 340,111 370,117 400,124 430,133 460,143 480,151"
+            fill="none" stroke="#39ff14" stroke-width="2"/>
+  <text x="484" y="154" font-size="8" fill="#39ff14">semantic</text>
+
+  <!-- Procedural curve (middle) -->
+  <polyline points="278,104 310,113 340,124 370,137 400,151 430,165 460,178 480,187"
+            fill="none" stroke="#ff6b35" stroke-width="2"/>
+  <text x="484" y="191" font-size="8" fill="#ff6b35">procedural</text>
+
+  <!-- Episodic curve (steepest) -->
+  <polyline points="278,104 310,122 340,142 370,163 400,183 430,200 460,215 480,223"
+            fill="none" stroke="#00d4ff" stroke-width="2"/>
+  <text x="484" y="227" font-size="8" fill="#00d4ff">episodic</text>
+
+  <!-- Archive threshold line -->
+  <line x1="278" y1="224" x2="480" y2="224" stroke="#ef4444" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="282" y="222" font-size="7" fill="#ef4444">archive (&lt;0.07)</text>
+
+  <!-- Ebbinghaus formula -->
+  <rect x="258" y="294" width="240" height="80" rx="9" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="378" y="314" text-anchor="middle" font-size="10" font-weight="600" fill="#94a3b8">Decay Formula</text>
+  <text x="378" y="332" text-anchor="middle" font-size="9"  fill="#64748b" font-style="italic">new = max(0, strength × rate^Δhrs)</text>
+  <text x="378" y="350" text-anchor="middle" font-size="8"  fill="#334155">runs every 60 s · archived at &lt; 0.07</text>
+  <text x="378" y="364" text-anchor="middle" font-size="8"  fill="#334155">retrieval boosts strength + prevents archive</text>
+
+  <!-- Ebbinghaus formula 2 -->
+  <rect x="258" y="388" width="240" height="88" rx="9" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="378" y="408" text-anchor="middle" font-size="10" font-weight="600" fill="#94a3b8">Memory Lifecycle</text>
+  <text x="270" y="426" font-size="9" fill="#94a3b8">1. Write  →  embed (Ollama) → store</text>
+  <text x="270" y="440" font-size="9" fill="#94a3b8">2. Read   →  cosine similarity (pgvector)</text>
+  <text x="270" y="454" font-size="9" fill="#94a3b8">3. Access →  strength boosted</text>
+  <text x="270" y="468" font-size="9" fill="#94a3b8">4. Idle   →  decay every minute</text>
+
+  <!-- Right: Vector retrieval flow -->
+  <rect x="516" y="52" width="318" height="360" rx="9" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+  <text x="675" y="74" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Vector Retrieval Flow</text>
+
+  <!-- Step boxes -->
+  <rect x="534" y="86" width="282" height="36" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="675" y="102" text-anchor="middle" font-size="9" font-weight="600" fill="#94a3b8">Query text</text>
+  <text x="675" y="116" text-anchor="middle" font-size="8"  fill="#475569">"Lambda function with S3 trigger"</text>
+
+  <line x1="675" y1="122" x2="675" y2="132" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="534" y="132" width="282" height="36" rx="6" fill="#8b5cf618" stroke="#8b5cf644" stroke-width="1"/>
+  <text x="675" y="148" text-anchor="middle" font-size="9" font-weight="600" fill="#8b5cf6">Ollama nomic-embed-text</text>
+  <text x="675" y="162" text-anchor="middle" font-size="8"  fill="#475569">HTTP POST localhost:11434 → 768-dim float[]</text>
+
+  <line x1="675" y1="168" x2="675" y2="178" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Ollama decision diamond -->
+  <polygon points="675,178 720,198 675,218 630,198" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+  <text x="675" y="195" text-anchor="middle" font-size="8" fill="#64748b">Ollama</text>
+  <text x="675" y="207" text-anchor="middle" font-size="8" fill="#64748b">available?</text>
+
+  <!-- yes path -->
+  <line x1="720" y1="198" x2="730" y2="198" stroke="#22c55e" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="725" y="193" font-size="7" fill="#22c55e">yes</text>
+
+  <rect x="730" y="182" width="82" height="30" rx="5" fill="#22c55e10" stroke="#22c55e44" stroke-width="1"/>
+  <text x="771" y="200" text-anchor="middle" font-size="8" fill="#22c55e">pgvector</text>
+  <text x="771" y="210" text-anchor="middle" font-size="7" fill="#475569">cosine similarity</text>
+
+  <!-- no path -->
+  <line x1="675" y1="218" x2="675" y2="228" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="680" y="227" font-size="7" fill="#f59e0b">no</text>
+
+  <rect x="630" y="228" width="90" height="30" rx="5" fill="#f59e0b10" stroke="#f59e0b44" stroke-width="1"/>
+  <text x="675" y="246" text-anchor="middle" font-size="8" fill="#f59e0b">Jaccard fallback</text>
+  <text x="675" y="256" text-anchor="middle" font-size="7" fill="#475569">keyword similarity</text>
+
+  <!-- merge lines -->
+  <line x1="771" y1="212" x2="771" y2="268" stroke="#475569" stroke-width="1.2"/>
+  <line x1="675" y1="258" x2="675" y2="268" stroke="#475569" stroke-width="1.2"/>
+  <line x1="675" y1="268" x2="771" y2="268" stroke="#475569" stroke-width="1.2"/>
+  <line x1="720" y1="268" x2="720" y2="278" stroke="#475569" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <rect x="580" y="278" width="200" height="36" rx="6" fill="#3b82f618" stroke="#3b82f644" stroke-width="1"/>
+  <text x="680" y="294" text-anchor="middle" font-size="9" font-weight="600" fill="#3b82f6">Top-3 memories returned</text>
+  <text x="680" y="308" text-anchor="middle" font-size="8"  fill="#475569">ordered by relevance · strength &gt; 0.07</text>
+
+  <line x1="680" y1="314" x2="680" y2="324" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <rect x="580" y="324" width="200" height="36" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="680" y="340" text-anchor="middle" font-size="9" font-weight="600" fill="#94a3b8">Injected into Groq prompt</text>
+  <text x="680" y="354" text-anchor="middle" font-size="8"  fill="#475569">as context block before generation</text>
+
+  <!-- SQL snippet -->
+  <rect x="516" y="426" width="318" height="82" rx="9" fill="#0a0f1e" stroke="#1e3a5f" stroke-width="1.5"/>
+  <text x="675" y="444" text-anchor="middle" font-size="9" font-weight="600" fill="#3b82f6">pgvector query</text>
+  <text x="528" y="460" font-size="8" fill="#475569" font-family="'Courier New', monospace">SELECT * FROM episodic_memories</text>
+  <text x="528" y="474" font-size="8" fill="#475569" font-family="'Courier New', monospace">WHERE agent_name=$1</text>
+  <text x="528" y="488" font-size="8" fill="#475569" font-family="'Courier New', monospace">  AND strength &gt; 0.07 AND embedding IS NOT NULL</text>
+  <text x="528" y="502" font-size="8" fill="#3b82f6"  font-family="'Courier New', monospace">ORDER BY embedding &lt;=&gt; $query::vector LIMIT 3;</text>
+
+  <!-- connector arrows from memory types to center -->
+  <line x1="240" y1="118" x2="254" y2="118" stroke="#00d4ff33" stroke-width="1.2" stroke-dasharray="2,2" marker-end="url(#arr)"/>
+  <line x1="240" y1="264" x2="254" y2="264" stroke="#39ff1433" stroke-width="1.2" stroke-dasharray="2,2" marker-end="url(#arr)"/>
+  <line x1="240" y1="410" x2="254" y2="410" stroke="#ff6b3533" stroke-width="1.2" stroke-dasharray="2,2" marker-end="url(#arr)"/>
+
+  <!-- connector from center to right -->
+  <line x1="498" y1="200" x2="512" y2="200" stroke="#475569" stroke-width="1.2" stroke-dasharray="2,2" marker-end="url(#arr)"/>
+</svg>
