@@ -1,0 +1,38 @@
+{
+  "name": "floci-nexus",
+  "version": "1.0.0",
+  "description": "Multi-agent infrastructure provisioning system — ARIA, FORGE, SAGE, SCOUT orchestrate Terraform deployments with vector memory and real-time Kanban.",
+  "main": "dist/api.js",
+  "scripts": {
+    "start": "bash start.sh",
+    "dev": "ts-node src/api.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai-agents",
+    "terraform",
+    "infrastructure",
+    "llm",
+    "groq",
+    "pgvector",
+    "ollama"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "openai": "^6.42.0",
+    "pg": "^8.21.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "uuid": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.3",
+    "@types/pg": "^8.11.11",
+    "@types/uuid": "^10.0.0"
+  }
+}

@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment — never commit secrets
+.env
+.env.local
+
+# Terraform workspaces (generated at runtime)
+/tmp/terraform/
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/.terraform.tfstate.lock.info
+
+# OS / editor noise
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Claude Code project config (machine-specific)
+.claude/

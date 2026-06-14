@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FLOCI NEXUS — Agent Command Center</title>
+<style>
+:root{
+  --bg:#05050f;--surface:rgba(255,255,255,.035);--border:rgba(255,255,255,.07);
+  --aria:#00d4ff;--forge:#ff6b35;--sage:#39ff14;--scout:#da70d6;
+  --ok:#00ff87;--err:#ff3366;--warn:#ffbe0b;--txt:#dde6ff;--muted:#526175;
+  --card-r:10px; --col-w:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;min-height:100vh;overflow-x:hidden}
+
+/* ── dot-grid bg ── */
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:28px 28px;pointer-events:none;z-index:0}
+
+/* ── HEADER ── */
+#header{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:16px;padding:10px 20px;background:rgba(5,5,15,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.logo{font-size:18px;font-weight:700;letter-spacing:3px;color:var(--txt);display:flex;align-items:center;gap:8px}
+.logo span{color:var(--aria);text-shadow:0 0 12px var(--aria)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok);animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#clock{margin-left:auto;font-family:monospace;color:var(--muted);font-size:12px}
+.hdr-badge{padding:2px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:1px;border:1px solid currentColor}
+.hdr-badge.ok{color:var(--ok);border-color:rgba(0,255,135,.3)}
+
+/* ── MAIN GRID ── */
+#main{position:relative;z-index:1;padding:16px 20px;display:flex;flex-direction:column;gap:20px}
+
+/* ── SECTION LABEL ── */
+.section-label{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+
+/* ── AGENTS ROW ── */
+#agents-row{display:flex;gap:12px;flex-wrap:wrap}
+
+.agent-card{
+  flex:1;min-width:200px;max-width:280px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);
+  padding:14px;position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;
+}
+.agent-card.active{animation:agent-pulse 1.5s infinite}
+@keyframes agent-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(var(--ac-rgb),.4)}
+  50%{box-shadow:0 0 0 8px rgba(var(--ac-rgb),0)}
+}
+.agent-card[data-agent="ARIA"] {--ac:var(--aria);--ac-rgb:0,212,255}
+.agent-card[data-agent="FORGE"]{--ac:var(--forge);--ac-rgb:255,107,53}
+.agent-card[data-agent="SAGE"] {--ac:var(--sage); --ac-rgb:57,255,20}
+.agent-card[data-agent="SCOUT"]{--ac:var(--scout);--ac-rgb:218,112,214}
+
+.agent-card::before{content:'';position:absolute;inset:0;opacity:.06;background:radial-gradient(circle at 0% 0%,var(--ac),transparent 70%);pointer-events:none}
+.agent-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.agent-emoji{font-size:22px}
+.agent-info .name{font-size:15px;font-weight:700;letter-spacing:1px;color:var(--ac)}
+.agent-info .role{font-size:10px;color:var(--muted);margin-top:1px}
+.agent-status{margin-left:auto;font-size:9px;font-weight:600;letter-spacing:1px;padding:2px 7px;border-radius:10px;border:1px solid currentColor;text-transform:uppercase;transition:all .3s}
+.agent-status.idle{color:var(--muted);border-color:var(--muted)}
+.agent-status.thinking{color:var(--warn);border-color:rgba(255,190,11,.4);animation:status-glow .8s infinite alternate}
+.agent-status.working{color:var(--ac);border-color:rgba(var(--ac-rgb),.4);animation:status-glow .5s infinite alternate}
+@keyframes status-glow{from{box-shadow:none}to{box-shadow:0 0 8px currentColor}}
+
+.agent-thought{font-size:10px;color:var(--muted);font-style:italic;margin-bottom:10px;min-height:16px;transition:all .3s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.memory-section .mem-label{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.mem-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.mem-type{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.mem-type.episodic  {background:var(--aria)}
+.mem-type.semantic  {background:var(--sage)}
+.mem-type.procedural{background:var(--forge)}
+.mem-name{font-size:9px;color:var(--muted);width:62px;flex-shrink:0}
+.mem-bar-wrap{flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:5px;overflow:hidden}
+.mem-bar{height:100%;border-radius:4px;transition:width 1s ease;min-width:2px}
+.mem-bar.episodic  {background:linear-gradient(90deg,var(--aria),rgba(0,212,255,.4))}
+.mem-bar.semantic  {background:linear-gradient(90deg,var(--sage),rgba(57,255,20,.4))}
+.mem-bar.procedural{background:linear-gradient(90deg,var(--forge),rgba(255,107,53,.4))}
+.mem-count{font-size:9px;color:var(--muted);width:28px;text-align:right;flex-shrink:0}
+
+/* ── KANBAN ── */
+#kanban-wrap{overflow-x:auto;padding-bottom:8px}
+#kanban-board{display:flex;gap:10px;min-width:max-content}
+
+.kanban-col{width:var(--col-w);flex-shrink:0;display:flex;flex-direction:column;gap:8px}
+.col-header{
+  padding:8px 10px;border-radius:8px;font-size:10px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;background:var(--surface);border:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.col-agent-badge{font-size:9px;padding:2px 6px;border-radius:8px;border:1px solid currentColor;opacity:.7}
+.col-count{font-size:9px;color:var(--muted)}
+.col-body{display:flex;flex-direction:column;gap:6px;min-height:60px}
+
+/* column accent colours */
+.col-queued        .col-header{border-color:rgba(255,255,255,.12)}
+.col-gathering     .col-header{border-color:rgba(0,212,255,.3);color:var(--aria)}
+.col-forging       .col-header{border-color:rgba(255,107,53,.3);color:var(--forge)}
+.col-pending_plan  .col-header,
+.col-pending_apply .col-header{border-color:rgba(255,190,11,.3);color:var(--warn)}
+.col-planning      .col-header,
+.col-deploying     .col-header{border-color:rgba(255,255,255,.15)}
+.col-validating    .col-header{border-color:rgba(57,255,20,.3);color:var(--sage)}
+.col-scouting      .col-header{border-color:rgba(218,112,214,.3);color:var(--scout)}
+.col-complete      .col-header{border-color:rgba(0,255,135,.3);color:var(--ok)}
+.col-failed        .col-header{border-color:rgba(255,51,102,.3);color:var(--err)}
+
+/* ── TASK CARD ── */
+.task-card{
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:8px;padding:10px;cursor:pointer;
+  transition:transform .15s,border-color .3s,box-shadow .3s;
+  animation:card-in .3s ease;
+}
+@keyframes card-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.task-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.15);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+
+.task-id{font-family:monospace;font-size:9px;color:var(--muted)}
+.task-user{font-size:9px;color:var(--muted);margin-bottom:4px}
+.task-title{font-size:11px;color:var(--txt);line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.task-agent{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px;border:1px solid currentColor;margin-bottom:6px}
+.task-agent.ARIA  {color:var(--aria);border-color:rgba(0,212,255,.3)}
+.task-agent.FORGE {color:var(--forge);border-color:rgba(255,107,53,.3)}
+.task-agent.SAGE  {color:var(--sage); border-color:rgba(57,255,20,.3)}
+.task-agent.SCOUT {color:var(--scout);border-color:rgba(218,112,214,.3)}
+
+.task-age{font-size:9px;color:var(--muted)}
+
+/* ── BOTTOM PANELS ── */
+#bottom-row{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:12px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:14px;overflow:hidden}
+
+/* gaps */
+.gap-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.gap-item:last-child{border:none}
+.gap-sev{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:600}
+.gap-sev.critical{background:rgba(255,51,102,.2);color:var(--err)}
+.gap-sev.high    {background:rgba(255,190,11,.2);color:var(--warn)}
+.gap-sev.medium  {background:rgba(218,112,214,.2);color:var(--scout)}
+.gap-sev.low     {background:rgba(255,255,255,.07);color:var(--muted)}
+
+/* memory health */
+.mh-agent{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.mh-agent:last-child{border:none}
+.mh-name{font-size:11px;font-weight:600;width:50px;flex-shrink:0}
+.mh-bars{flex:1;display:flex;flex-direction:column;gap:3px}
+.mh-bar-row{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted)}
+.mh-bar-wrap{flex:1;background:rgba(255,255,255,.06);border-radius:3px;height:4px}
+.mh-bar{height:100%;border-radius:3px;transition:width 1.5s ease}
+
+/* activity feed */
+#activity-log{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.activity-item{font-size:10px;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:card-in .2s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.activity-item:last-child{border:none}
+.activity-item.new{color:var(--txt)}
+#activity-log::-webkit-scrollbar{width:4px}
+#activity-log::-webkit-scrollbar-track{background:transparent}
+#activity-log::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* metrics row */
+#metrics-row{display:flex;gap:10px;flex-wrap:wrap}
+.metric-chip{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;text-align:center;flex:1;min-width:80px}
+.metric-chip .val{font-size:22px;font-weight:700;display:block;color:var(--txt)}
+.metric-chip .lbl{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* decay indicator */
+#decay-bar{height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-top:6px}
+#decay-fill{height:100%;width:0;background:linear-gradient(90deg,var(--forge),var(--err));border-radius:2px;transition:width 1s ease}
+
+/* ── REQUIREMENTS INPUT ── */
+#req-panel{
+  background:var(--surface);border:1px solid rgba(0,212,255,.2);border-radius:var(--card-r);
+  padding:18px 20px;position:relative;overflow:hidden;
+}
+#req-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 0% 0%,rgba(0,212,255,.04),transparent 60%);pointer-events:none}
+#req-panel-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+#req-panel-header .aria-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;
+  background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.25);
+  font-size:10px;font-weight:600;letter-spacing:1px;color:var(--aria)
+}
+#req-panel-header h2{font-size:13px;font-weight:600;color:var(--txt);letter-spacing:.5px}
+#req-panel-header p{font-size:10px;color:var(--muted);margin-top:2px}
+
+#req-user-row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+#req-user-input{
+  width:200px;padding:7px 12px;border-radius:8px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--txt);font-size:12px;font-family:inherit;outline:none;
+  transition:border-color .2s
+}
+#req-user-input:focus{border-color:rgba(0,212,255,.4)}
+#req-user-input::placeholder{color:var(--muted)}
+#req-user-label{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+
+#req-input-row{display:flex;gap:10px;align-items:flex-end}
+#req-textarea{
+  flex:1;padding:12px 14px;border-radius:8px;resize:none;min-height:64px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--txt);font-size:12px;font-family:inherit;line-height:1.5;outline:none;
+  transition:border-color .2s
+}
+#req-textarea:focus{border-color:rgba(0,212,255,.4)}
+#req-textarea::placeholder{color:var(--muted)}
+#req-submit{
+  padding:12px 22px;border-radius:8px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,rgba(0,212,255,.15),rgba(0,212,255,.05));
+  border:1px solid rgba(0,212,255,.4);color:var(--aria);
+  font-size:12px;font-weight:600;letter-spacing:1px;font-family:inherit;
+  transition:all .2s;white-space:nowrap;flex-shrink:0;align-self:flex-end;height:44px;
+}
+#req-submit:hover:not(:disabled){background:rgba(0,212,255,.2);box-shadow:0 0 16px rgba(0,212,255,.2)}
+#req-submit:disabled{opacity:.4;cursor:not-allowed}
+#req-status{font-size:10px;color:var(--muted);margin-top:8px;min-height:14px;transition:color .3s}
+#req-status.ok{color:var(--ok)}
+#req-status.err{color:var(--err)}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo"><span>◆</span> FLOCI NEXUS</div>
+  <div class="live-dot" id="live-dot" style="background:var(--muted);box-shadow:none"></div>
+  <span class="hdr-badge ok" id="conn-badge">CONNECTING…</span>
+  <span id="clock" style="margin-left:auto"></span>
+</div>
+
+<div id="main">
+
+  <!-- requirements input -->
+  <div id="req-panel">
+    <div id="req-panel-header">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+          <span class="aria-badge">🎯 ARIA</span>
+          <h2>Submit Infrastructure Requirements</h2>
+        </div>
+        <p>Describe what you need — ARIA will clarify, FORGE will build it, SAGE will validate, SCOUT will flag gaps.</p>
+      </div>
+    </div>
+    <div id="req-user-row">
+      <span id="req-user-label">Your ID</span>
+      <input id="req-user-input" type="text" placeholder="e.g. alice@company.com" value="">
+    </div>
+    <div id="req-input-row">
+      <textarea id="req-textarea" placeholder="Describe your infrastructure needs… e.g. &quot;I need an S3 bucket with versioning enabled and a DynamoDB table for user sessions with on-demand capacity&quot;"></textarea>
+      <button id="req-submit" onclick="submitReq()">SUBMIT ▶</button>
+    </div>
+    <div id="req-status"></div>
+  </div>
+
+  <!-- agents -->
+  <div>
+    <div class="section-label">Agent Intelligence</div>
+    <div id="agents-row"></div>
+  </div>
+
+  <!-- metrics -->
+  <div>
+    <div class="section-label">System Metrics</div>
+    <div id="metrics-row">
+      <div class="metric-chip"><span class="val" id="m-total">—</span><span class="lbl">Total Runs</span></div>
+      <div class="metric-chip"><span class="val" id="m-approval" style="color:var(--ok)">—%</span><span class="lbl">Approval Rate</span></div>
+      <div class="metric-chip"><span class="val" id="m-success" style="color:var(--ok)">—%</span><span class="lbl">Success Rate</span></div>
+      <div class="metric-chip"><span class="val" id="m-gaps" style="color:var(--warn)">—</span><span class="lbl">Open Gaps</span></div>
+      <div class="metric-chip"><span class="val" id="m-critical" style="color:var(--err)">—</span><span class="lbl">Critical Gaps</span></div>
+    </div>
+  </div>
+
+  <!-- kanban -->
+  <div>
+    <div class="section-label">Pipeline</div>
+    <div id="kanban-wrap">
+      <div id="kanban-board"></div>
+    </div>
+  </div>
+
+  <!-- bottom panels -->
+  <div id="bottom-row">
+    <div class="panel">
+      <div class="section-label">Capability Gaps</div>
+      <div id="gaps-list"><span style="color:var(--muted);font-size:11px">No gaps detected yet.</span></div>
+    </div>
+    <div class="panel">
+      <div class="section-label">Memory Health
+        <div id="decay-bar"><div id="decay-fill"></div></div>
+      </div>
+      <div id="memory-health"></div>
+    </div>
+    <div class="panel">
+      <div class="section-label">Live Activity</div>
+      <div id="activity-log"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+// DATA
+// ──────────────────────────────────────────────────────────────
+const SOULS = {
+  ARIA:  { emoji:"🎯", color:"#00d4ff", full:"Adaptive Requirements Intelligence Agent", quote:"Tell me what you need, and I'll hear what you mean." },
+  FORGE: { emoji:"⚙️", color:"#ff6b35", full:"Foundational Operations Resource & Generation Engine", quote:"Give me your requirements. I'll give you a cathedral." },
+  SAGE:  { emoji:"🔮", color:"#39ff14", full:"Systematic Architecture Governance Engine", quote:"Trust the plan. Verify the reality." },
+  SCOUT: { emoji:"🔭", color:"#da70d6", full:"Service Capability Observer & Uncharted Territory Tracker", quote:"I chart the space between what exists and what's needed." },
+};
+
+const COLUMNS = [
+  { id:"queued",        label:"Queued",         agent:null    },
+  { id:"gathering",     label:"Gathering",       agent:"ARIA"  },
+  { id:"forging",       label:"Forging",         agent:"FORGE" },
+  { id:"pending_plan",  label:"Pending Plan",    agent:null    },
+  { id:"planning",      label:"Planning",        agent:null    },
+  { id:"pending_apply", label:"Pending Apply",   agent:null    },
+  { id:"deploying",     label:"Deploying",       agent:null    },
+  { id:"validating",    label:"Validating",      agent:"SAGE"  },
+  { id:"scouting",      label:"Scouting",        agent:"SCOUT" },
+  { id:"complete",      label:"Complete ✓",      agent:null    },
+  { id:"failed",        label:"Failed ✗",        agent:null    },
+];
+
+let tasks = [];
+let agentStatuses = {};
+let memStats = { ARIA:{}, FORGE:{}, SAGE:{}, SCOUT:{} };
+
+// ──────────────────────────────────────────────────────────────
+// CLOCK
+// ──────────────────────────────────────────────────────────────
+setInterval(()=>{
+  document.getElementById("clock").textContent = new Date().toLocaleTimeString();
+},1000);
+
+// ──────────────────────────────────────────────────────────────
+// BUILD AGENT CARDS
+// ──────────────────────────────────────────────────────────────
+function buildAgentCards(){
+  const row = document.getElementById("agents-row");
+  row.innerHTML = "";
+  for(const [name, soul] of Object.entries(SOULS)){
+    const card = document.createElement("div");
+    card.className = "agent-card";
+    card.dataset.agent = name;
+    card.style.borderColor = soul.color + "44";
+    card.innerHTML = `
+      <div class="agent-header">
+        <span class="agent-emoji">${soul.emoji}</span>
+        <div class="agent-info">
+          <div class="name" style="color:${soul.color}">${name}</div>
+          <div class="role">${soul.full}</div>
+        </div>
+        <span class="agent-status idle" id="status-${name}">idle</span>
+      </div>
+      <div class="agent-thought" id="thought-${name}">${soul.quote}</div>
+      <div class="memory-section">
+        <div class="mem-label">Brain — Memory</div>
+        ${memRow("episodic","episodic","E",name)}
+        ${memRow("semantic","semantic","S",name)}
+        ${memRow("procedural","procedural","P",name)}
+      </div>`;
+    row.appendChild(card);
+  }
+}
+
+function memRow(type, cls, short, agent){
+  return `<div class="mem-row">
+    <div class="mem-type ${cls}"></div>
+    <span class="mem-name">${type}</span>
+    <div class="mem-bar-wrap"><div class="mem-bar ${cls}" id="mb-${agent}-${type}" style="width:0%"></div></div>
+    <span class="mem-count" id="mc-${agent}-${type}">—</span>
+  </div>`;
+}
+
+// ──────────────────────────────────────────────────────────────
+// BUILD KANBAN BOARD
+// ──────────────────────────────────────────────────────────────
+function buildBoard(){
+  const board = document.getElementById("kanban-board");
+  board.innerHTML = "";
+  for(const col of COLUMNS){
+    const div = document.createElement("div");
+    div.className = `kanban-col col-${col.id}`;
+    div.dataset.col = col.id;
+    const agentBadge = col.agent
+      ? `<span class="col-agent-badge" style="color:${SOULS[col.agent]?.color}">${col.agent}</span>`
+      : "";
+    div.innerHTML = `
+      <div class="col-header">
+        <span>${col.label}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${agentBadge}
+          <span class="col-count" id="cc-${col.id}">0</span>
+        </div>
+      </div>
+      <div class="col-body" id="col-${col.id}"></div>`;
+    board.appendChild(div);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// RENDER TASKS
+// ──────────────────────────────────────────────────────────────
+function renderTasks(){
+  // Clear all columns
+  for(const col of COLUMNS){
+    const el = document.getElementById("col-"+col.id);
+    if(el) el.innerHTML = "";
+    const cc = document.getElementById("cc-"+col.id);
+    if(cc) cc.textContent = "0";
+  }
+  // Place tasks
+  for(const t of tasks){
+    const col = document.getElementById("col-"+t.column_id);
+    if(!col) continue;
+    const cc = document.getElementById("cc-"+t.column_id);
+    if(cc) cc.textContent = String(parseInt(cc.textContent)+1);
+    col.appendChild(taskCard(t));
+  }
+}
+
+function taskCard(t){
+  const el = document.createElement("div");
+  el.className = "task-card";
+  el.id = "task-"+t.id;
+
+  const ago = timeAgo(new Date(t.updated_at||t.created_at));
+  const agentBadge = t.agent_name
+    ? `<div class="task-agent ${t.agent_name}">${SOULS[t.agent_name]?.emoji||""} ${t.agent_name}</div>`
+    : "";
+
+  el.innerHTML = `
+    <div class="task-id">#${t.id.slice(0,8)}</div>
+    <div class="task-user">${t.user_id}</div>
+    <div class="task-title">${escHtml(t.title||t.description)}</div>
+    ${agentBadge}
+    <div class="task-age">${ago}</div>`;
+  return el;
+}
+
+function escHtml(s){ return s.replace(/[<>&"]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]||c)); }
+function timeAgo(d){
+  const s = Math.floor((Date.now()-d)/1000);
+  if(s<60) return `${s}s ago`;
+  if(s<3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+}
+
+// ──────────────────────────────────────────────────────────────
+// AGENT STATUS UPDATE
+// ──────────────────────────────────────────────────────────────
+function updateAgentStatus(s){
+  const card = document.querySelector(`.agent-card[data-agent="${s.name}"]`);
+  if(!card) return;
+  const statusEl = document.getElementById("status-"+s.name);
+  const thoughtEl = document.getElementById("thought-"+s.name);
+
+  card.classList.toggle("active", s.status !== "idle");
+  if(statusEl){ statusEl.textContent = s.status; statusEl.className = "agent-status "+s.status; }
+  if(thoughtEl && s.thought) thoughtEl.textContent = s.thought;
+  else if(thoughtEl && s.status === "idle") thoughtEl.textContent = SOULS[s.name]?.quote||"";
+}
+
+// ──────────────────────────────────────────────────────────────
+// MEMORY UPDATE
+// ──────────────────────────────────────────────────────────────
+function updateMemory(agent, stats){
+  if(!stats) return;
+  memStats[agent] = stats;
+  for(const [type, data] of Object.entries(stats)){
+    const bar = document.getElementById(`mb-${agent}-${type}`);
+    const cnt = document.getElementById(`mc-${agent}-${type}`);
+    if(bar && data){ bar.style.width = (data.avg_strength*100).toFixed(1)+"%"; }
+    if(cnt && data){ cnt.textContent = data.count; }
+  }
+  renderMemoryHealth();
+}
+
+function renderMemoryHealth(){
+  const div = document.getElementById("memory-health");
+  if(!div) return;
+  div.innerHTML = "";
+  for(const [name, soul] of Object.entries(SOULS)){
+    const s = memStats[name]||{};
+    const e = s.episodic||{avg_strength:0,count:0};
+    const sm = s.semantic||{avg_strength:0,count:0};
+    const p = s.procedural||{avg_strength:0,count:0};
+    div.innerHTML += `
+      <div class="mh-agent">
+        <span class="mh-name" style="color:${soul.color}">${soul.emoji} ${name}</span>
+        <div class="mh-bars">
+          ${mhBar("E",e.avg_strength,"#00d4ff",e.count)}
+          ${mhBar("S",sm.avg_strength,"#39ff14",sm.count)}
+          ${mhBar("P",p.avg_strength,"#ff6b35",p.count)}
+        </div>
+      </div>`;
+  }
+}
+
+function mhBar(label, strength, color, count){
+  const pct = ((strength||0)*100).toFixed(0);
+  return `<div class="mh-bar-row">
+    <span style="width:12px;color:${color}">${label}</span>
+    <div class="mh-bar-wrap"><div class="mh-bar" style="width:${pct}%;background:${color}"></div></div>
+    <span style="width:24px;text-align:right">${count||0}</span>
+    <span style="width:32px;text-align:right;color:${color}">${pct}%</span>
+  </div>`;
+}
+
+// ──────────────────────────────────────────────────────────────
+// GAPS
+// ──────────────────────────────────────────────────────────────
+let gaps = [];
+function renderGaps(){
+  const div = document.getElementById("gaps-list");
+  if(!div) return;
+  if(!gaps.length){ div.innerHTML = `<span style="color:var(--muted);font-size:11px">No gaps detected yet.</span>`; return; }
+  div.innerHTML = gaps.slice(0,8).map(g=>`
+    <div class="gap-item">
+      <span>${g.service} — ${g.feature}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="color:var(--muted);font-size:9px">${g.occurrence_count||1}×</span>
+        <span class="gap-sev ${g.priority||g.severity||'medium'}">${g.priority||g.severity||'medium'}</span>
+      </div>
+    </div>`).join("");
+}
+
+// ──────────────────────────────────────────────────────────────
+// ACTIVITY
+// ──────────────────────────────────────────────────────────────
+const activities = [];
+function addActivity(msg){
+  activities.unshift({ msg, ts: Date.now() });
+  if(activities.length > 50) activities.pop();
+  renderActivity();
+}
+function renderActivity(){
+  const div = document.getElementById("activity-log");
+  if(!div) return;
+  div.innerHTML = activities.slice(0,30).map((a,i)=>
+    `<div class="activity-item${i===0?' new':''}">${timeAgo(new Date(a.ts))} — ${escHtml(a.msg)}</div>`
+  ).join("");
+}
+
+// ──────────────────────────────────────────────────────────────
+// METRICS
+// ──────────────────────────────────────────────────────────────
+function fetchMetrics(){
+  fetch("/api/admin/metrics").then(r=>r.json()).then(m=>{
+    document.getElementById("m-total").textContent   = m.totalRuns;
+    document.getElementById("m-approval").textContent= m.approvalRate+"%";
+    document.getElementById("m-success").textContent = m.successRate+"%";
+    document.getElementById("m-gaps").textContent    = m.openGaps;
+    document.getElementById("m-critical").textContent= m.criticalGaps;
+  }).catch(()=>{});
+}
+function fetchGaps(){
+  fetch("/api/admin/gaps?status=open").then(r=>r.json()).then(d=>{ gaps=d.gaps||[]; renderGaps(); }).catch(()=>{});
+}
+setInterval(fetchMetrics, 30_000);
+setInterval(fetchGaps, 30_000);
+
+// ──────────────────────────────────────────────────────────────
+// SSE
+// ──────────────────────────────────────────────────────────────
+function connectSSE(){
+  const es = new EventSource("/api/stream");
+  const dot = document.getElementById("live-dot");
+  const badge = document.getElementById("conn-badge");
+
+  es.onopen = ()=>{
+    dot.style.background  = "var(--ok)";
+    dot.style.boxShadow   = "0 0 6px var(--ok)";
+    badge.textContent     = "LIVE";
+    badge.style.color     = "var(--ok)";
+    badge.style.borderColor = "rgba(0,255,135,.3)";
+  };
+
+  es.onmessage = e=>{
+    let ev;
+    try{ ev = JSON.parse(e.data); }catch{ return; }
+
+    switch(ev.type){
+      case "state":
+        tasks = ev.payload.tasks || [];
+        (ev.payload.agents||[]).forEach(a => updateAgentStatus(a));
+        renderTasks();
+        break;
+
+      case "task_created":
+        tasks.unshift(ev.payload);
+        renderTasks();
+        break;
+
+      case "task_moved":
+        const moved = ev.payload.task;
+        const idx = tasks.findIndex(t=>t.id===moved.id);
+        if(idx>=0) tasks[idx] = moved; else tasks.unshift(moved);
+        renderTasks();
+        addActivity(`Task #${moved.id.slice(0,8)} → ${ev.payload.column}`);
+        break;
+
+      case "agent_status":
+        updateAgentStatus(ev.payload);
+        break;
+
+      case "memory_update":
+        updateMemory(ev.payload.agent, ev.payload.stats);
+        break;
+
+      case "gap_detected":
+        const g = ev.payload;
+        if(!gaps.find(x=>x.service===g.service&&x.feature===g.feature)){
+          gaps.unshift({ service:g.service, feature:g.feature, priority:g.severity, occurrence_count:1 });
+          renderGaps();
+        }
+        break;
+
+      case "activity":
+        addActivity(ev.payload.msg);
+        break;
+
+      case "decay_tick":
+        // Animate decay bar briefly
+        const fill = document.getElementById("decay-fill");
+        if(fill){ fill.style.width="100%"; setTimeout(()=>fill.style.width="0%",1200); }
+        addActivity("💧 Memory decay cycle complete");
+        break;
+    }
+  };
+
+  es.onerror = ()=>{
+    dot.style.background   = "var(--err)";
+    dot.style.boxShadow    = "0 0 6px var(--err)";
+    badge.textContent      = "RECONNECTING";
+    badge.style.color      = "var(--err)";
+    badge.style.borderColor= "rgba(255,51,102,.3)";
+    setTimeout(connectSSE, 3000);
+    es.close();
+  };
+}
+
+// ──────────────────────────────────────────────────────────────
+// SUBMIT REQUIREMENT
+// ──────────────────────────────────────────────────────────────
+async function submitReq(){
+  const userId = document.getElementById("req-user-input").value.trim();
+  const userMessage = document.getElementById("req-textarea").value.trim();
+  const status = document.getElementById("req-status");
+  const btn = document.getElementById("req-submit");
+
+  if(!userId){ status.textContent = "⚠ Please enter your user ID."; status.className="req-status err"; return; }
+  if(!userMessage){ status.textContent = "⚠ Please describe your requirements."; status.className="req-status err"; return; }
+
+  btn.disabled = true;
+  status.textContent = "Sending to ARIA…";
+  status.className = "req-status";
+
+  try{
+    const resp = await fetch("/api/orchestrate", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ userId, userMessage })
+    });
+    const data = await resp.json();
+    if(resp.ok){
+      status.textContent = "✓ Task queued — watch the pipeline below.";
+      status.className = "req-status ok";
+      document.getElementById("req-textarea").value = "";
+    } else {
+      status.textContent = "✗ " + (data.error || "Server error");
+      status.className = "req-status err";
+    }
+  } catch(e){
+    status.textContent = "✗ Could not reach server.";
+    status.className = "req-status err";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Allow Ctrl+Enter / Cmd+Enter to submit
+document.addEventListener("DOMContentLoaded", ()=>{
+  document.getElementById("req-textarea").addEventListener("keydown", e=>{
+    if((e.ctrlKey||e.metaKey) && e.key==="Enter"){ e.preventDefault(); submitReq(); }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────────────
+buildAgentCards();
+buildBoard();
+renderMemoryHealth();
+renderActivity();
+fetchMetrics();
+fetchGaps();
+connectSSE();
+
+// Load agent memory stats on start
+fetch("/api/agents").then(r=>r.json()).then(agents=>{
+  agents.forEach(a => { if(a.memoryStats) updateMemory(a.name, a.memoryStats); });
+}).catch(()=>{});
+
+// Refresh task ages
+setInterval(()=>{ renderTasks(); renderActivity(); }, 60_000);
+
+// Tick clock immediately
+document.getElementById("clock").textContent = new Date().toLocaleTimeString();
+</script>
+</body>
+</html>
